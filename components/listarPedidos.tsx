@@ -11,7 +11,7 @@ import {
 } from "flowbite-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { PlusCircleIcon, LogOutIcon } from "lucide-react";
+import { PlusCircleIcon, LogOutIcon, RotateCcwIcon } from "lucide-react";
 import MaterialModal from "./forms";
 import Cookies from "js-cookie";
 
@@ -33,6 +33,14 @@ export default function ListarPedidos() {
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState("");
   const router = useRouter();
+  const [refreshing, setRefreshing] = useState(false); // para o botão atualizar
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setLoading(true);
+    await fetchPedidos();
+    setRefreshing(false);
+  };
 
   const pedidosFiltrados = pedidos.filter((pedido) =>
     pedido.nome.toLowerCase().includes(filtro.toLowerCase()),
@@ -54,7 +62,7 @@ export default function ListarPedidos() {
       }
     }
   }, [router]);
-  
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const cached = Cookies.get("cachedPedidos");
@@ -65,31 +73,31 @@ export default function ListarPedidos() {
         fetchPedidos();
       }
     }
-  }, []); 
+  }, []);
 
   const fetchPedidos = async () => {
     const usuario = Cookies.get("usuario");
-  
+
     if (!usuario) return; // Caso não tenha usuário, não faz nada
-  
+
     const mec = parseInt(JSON.parse(usuario)?.mec);
-  
+
     if (!mec) return setLoading(false);
-  
+
     try {
       Cookies.remove("cachedPedidos");
-  
+
       const response = await fetch(
         "https://prod-151.westeurope.logic.azure.com:443/workflows/3341d60cb9f04eb0b6857840b857b333/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=lLtrjv2GCTDBJhc7wlRfRI2dWSLqElOQKB1HP_4mppo",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ mec }),
-        }
+        },
       );
-  
+
       if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-  
+
       const data = await response.json();
       setPedidos(data);
       Cookies.set("cachedPedidos", JSON.stringify(data), { expires: 7 }); // Salva o cookie por 7 dias
@@ -100,8 +108,7 @@ export default function ListarPedidos() {
     } finally {
       setLoading(false);
     }
-  }
-  
+  };
 
   const handleLogout = () => {
     Cookies.remove("usuario");
@@ -145,6 +152,16 @@ export default function ListarPedidos() {
               </svg>
             </div>
           </div>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="inline-flex items-center gap-2 rounded-lg border border-blue-600 px-4 py-2 text-blue-600 transition hover:bg-blue-50 disabled:opacity-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20"
+          >
+            <RotateCcwIcon
+              className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`}
+            />
+            {refreshing ? "Atualizando..." : "Atualizar"}
+          </button>
 
           <button
             onClick={() => setOpen(true)}
@@ -177,8 +194,11 @@ export default function ListarPedidos() {
       {/* Tabela */}
       <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm dark:border-gray-700">
         {loading ? (
-          <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+           <div className="flex items-center justify-center p-10">
+           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600 dark:border-blue-400"></div>
+            <span className="ml-3 text-sm text-gray-600 dark:text-gray-300">
             Carregando pedidos...
+            </span>
           </div>
         ) : (
           <>

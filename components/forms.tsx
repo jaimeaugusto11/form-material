@@ -34,6 +34,7 @@ export default function MaterialModal({ isOpen, onClose, onAfterAdd }: MaterialM
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [idColaborador, setIdColaborador] = useState<number | "">("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [quantidadeEdicao, setQuantidadeEdicao] = useState<{ [index: number]: number }>({});
 
   useEffect(() => {
     const fetchMateriais = async () => {
