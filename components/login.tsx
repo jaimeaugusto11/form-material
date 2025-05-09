@@ -58,7 +58,7 @@ export default function LoginPanel() {
 
           <div className="rounded-2xl bg-white p-8 shadow">
             <h2 className="text-center text-3xl font-semibold text-slate-900">
-              Acessar ao Formulário
+            Acesso ao Formulário de Solicitação de Material
             </h2>
 
             <form className="mt-12 space-y-6" onSubmit={(e) => e.preventDefault()}>
